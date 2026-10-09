@@ -13,7 +13,7 @@ uv 0.12.21의 `uv sync`로 저장소 `.venv` 생성. `uv run ... python`의 sys.
 - monotonic wall time: 6.309301 seconds
 - core 줄 커버리지 92%, CLI 94% (Python 3.11 trace는 정수 퍼센트로 출력)
 - 플러그인 복사본에서 별도 `.venv` 생성 및 다른 프로젝트 cwd 호출 검증 추가
-- 실제 실행 포인터: validation-record.json의 uv_run (이전 14 tests 실행도 보존)
+- 실행 ID: `run-c56f7c7e6f0e48bd8485054990c2a6b5` (이전 14 tests 실행도 로컬 기록에 보존)
 
 현재 사용/테스트 명령은 README의 uv 기준을 따른다. 전역 pip 설치·빌드 백엔드 의존성 없이 uv application으로 실행한다. uv.lock을 버전 관리하며 `.venv`는 제외한다. macOS Python 3.11/3.14를 확인했고 Linux/Windows와 실제 Codex 설치는 후속이다.
 
@@ -30,9 +30,10 @@ GREEN: 최종 동일 unittest 명령을 **구현한 recorder를 통해 실제 �
 - 종료: 2026-10-09T17:38:54.963618+00:00
 - monotonic wall time: 13.615276 seconds
 - 결과: 전체 14 tests, OK, skip 없음
-- 실제 기록 경로와 ID: [validation-record.json](validation-record.json)
+- 작업 ID: `task-482a06fdb8574a1a92fe756326fe6a71`
+- 실행 ID: `run-e4c96a5087ad485dbc1f2d6b233bd7d5`
 
-검증용 기록 루트는 외부 임시 디렉터리다. 운영용 저장소가 아니며 OS 정리로 사라질 수 있다. GitHub 백업은 수행하지 않았다. Git checkpoint commit도 생성하지 않았다.
+검증용 기록 루트는 외부 임시 디렉터리다. 컴퓨터마다 달라지는 로컬 경로 포인터 파일은 공유 저장소에서 제거하고 실행 ID·측정 결과·재현 명령만 이 문서에 보존했다. 운영용 저장소가 아니며 OS 정리로 사라질 수 있다. GitHub 백업은 수행하지 않았다. Git checkpoint commit도 생성하지 않았다.
 
 ## 검증 보장
 
