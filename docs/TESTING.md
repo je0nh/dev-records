@@ -1,6 +1,6 @@
 # 검증 증거 · 2026-10-10 (Asia/Seoul)
 
-기준: DEV_RECORDS_HANDOFF.md와 [기획](PLAN.md). 환경: macOS, Python 3.14.8, Codex CLI 0.160.0.
+기준: [초기 인수인계](archive/DEV_RECORDS_HANDOFF.md)와 [기획](PLAN.md). 환경: macOS, Python 3.14.8, Codex CLI 0.160.0.
 
 ## 최신 검증: uv 가상환경 전환
 

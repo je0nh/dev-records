@@ -23,7 +23,7 @@ uv run --locked python -m dev_records --store /absolute/records status
 
 - [기획](docs/PLAN.md), [CLI 명세](docs/CLI.md), [설계·결정](docs/DESIGN.md)
 - [개인 플러그인](docs/PLUGIN.md), [검증 증거](docs/TESTING.md)
-- [인수인계 원본](DEV_RECORDS_HANDOFF.md)
+- [초기 인수인계 · 보관](docs/archive/DEV_RECORDS_HANDOFF.md)
 
 검증: `uv run --locked python -m unittest discover -s tests -v`
 
