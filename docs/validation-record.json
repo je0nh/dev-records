@@ -1,0 +1,25 @@
+{
+  "store": "/private/tmp/dev-records-self-validation-motkpm0v",
+  "task": {
+    "schema_version": 1,
+    "project_id": "dev-records",
+    "task_id": "task-482a06fdb8574a1a92fe756326fe6a71",
+    "title": "로컬 MVP 최종 검증",
+    "created_at": "2026-10-09T17:38:41.153301+00:00",
+    "sync_status": "local_only",
+    "document_commit": null,
+    "path": "/private/tmp/dev-records-self-validation-motkpm0v/projects/dev-records/tasks/task-482a06fdb8574a1a92fe756326fe6a71"
+  },
+  "run": {
+    "run_id": "run-e4c96a5087ad485dbc1f2d6b233bd7d5",
+    "path": "/private/tmp/dev-records-self-validation-motkpm0v/projects/dev-records/runs/run-e4c96a5087ad485dbc1f2d6b233bd7d5",
+    "status": "succeeded",
+    "exit_code": 0
+  },
+  "uv_run": {
+    "run_id": "run-c56f7c7e6f0e48bd8485054990c2a6b5",
+    "path": "/private/tmp/dev-records-self-validation-motkpm0v/projects/dev-records/runs/run-c56f7c7e6f0e48bd8485054990c2a6b5",
+    "status": "succeeded",
+    "exit_code": 0
+  }
+}

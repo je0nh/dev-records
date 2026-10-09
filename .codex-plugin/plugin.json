@@ -1,0 +1,6 @@
+{
+  "name": "dev-records",
+  "version": "0.1.0",
+  "description": "Local development planning and execution records",
+  "skills": "./skills/"
+}

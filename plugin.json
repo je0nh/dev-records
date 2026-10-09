@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dev-records",
+  "version": "0.1.0",
+  "description": "Record development plans, implementation decisions and actual command executions locally."
+}

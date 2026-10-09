@@ -1,0 +1,10 @@
+[project]
+name = "dev-records"
+version = "0.1.0"
+description = "Local development planning and execution records for Codex"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+# Codex bundles the source and entry script; no wheel installation is required.
+package = false
