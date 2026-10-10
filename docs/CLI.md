@@ -2,6 +2,8 @@
 
 아래 `dev-records`는 저장소 루트의 `uv run --locked python -m dev_records` 호출을 뜻한다. 다른 cwd에서는 `uv run --locked --project /absolute/plugin python /absolute/plugin/scripts/dev-records.py`를 사용한다.
 
+실행 OS를 기준으로 CLI를 차단하지 않는다. 명령과 래퍼에 지정한 실행 파일·인터프리터는 실제 실행 호스트에 설치되어 있어야 한다. Windows 실환경 호환성은 미검증이며 POSIX signal 종료 코드를 Windows의 강제 종료에 적용하지 않는다.
+
 전역 옵션 `--store PATH`는 서브명령 앞에 둔다. 생략 시 `DEV_RECORDS_STORE`를 사용하며 둘 다 없으면 오류다. 출력은 한 줄 JSON, 오류는 stderr JSON. ID는 영문 소문자/숫자로 시작하고 소문자/숫자/하이픈 1–64자. 프로젝트 ID는 사용자 지정, 작업/실행 ID는 UUID 기반 자동 생성. 암묵적인 현재 작업은 없다.
 
 ```text
