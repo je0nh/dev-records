@@ -36,7 +36,12 @@ class Extra(Fixtures):
         task = self.setup_task()
         external = self.base / 'external'
         external.mkdir()
-        (self.store / 'projects' / 'escape').symlink_to(external, target_is_directory=True)
+        try:
+            (self.store / 'projects' / 'escape').symlink_to(external, target_is_directory=True)
+        except OSError as exc:
+            if os.name == 'nt' and getattr(exc, 'winerror', None) == 1314:
+                self.skipTest('Windows symlink creation privilege is unavailable')
+            raise
         self.call('task', 'start', '--project', 'escape', '--title', 'blocked', expected=2)
         (self.source / 'outside').symlink_to(external, target_is_directory=True)
         self.call('run', '--project', 'alpha', '--task', task, '--cwd', str(self.source / 'outside'), '--', 'anything', expected=2)

@@ -1,5 +1,6 @@
 """Filesystem records and command execution; no network or implicit shell."""
 from datetime import datetime, timezone
+import hashlib
 import json
 import math
 import os
@@ -154,7 +155,7 @@ class Store:
             projects.append(item)
         return {'path': str(self.root), 'sync_status': 'local_only', 'projects': projects}
 
-    def run(self, project_id, task_id, argv, cwd=None, timeout=None):
+    def run(self, project_id, task_id, argv, cwd=None, timeout=None, wrapper=None):
         project = self.project(project_id)
         record = read_json(self.path('projects', project_id, 'project.json'))
         identifier(task_id)
@@ -169,6 +170,15 @@ class Store:
             raise ValueError('cwd must be a directory inside source')
         if overlaps(source, self.root):
             raise ValueError('source now overlaps record store')
+        wrapper_path = None
+        wrapper_bytes = None
+        if wrapper is not None:
+            if argv.count('{wrapper}') != 1:
+                raise ValueError('wrapper requires exactly one standalone {wrapper} argument')
+            wrapper_path = Path(wrapper).expanduser().resolve(strict=True)
+            if not wrapper_path.is_file():
+                raise ValueError('wrapper must be a regular file')
+            wrapper_bytes = wrapper_path.read_bytes()
         run_id = 'run-' + uuid.uuid4().hex
         directory = self.path('projects', project_id, 'runs', run_id)
         directory.mkdir()
@@ -179,10 +189,22 @@ class Store:
              'target_environment': None, 'artifacts': None, 'test_summary': None,
              'logs': {'stdout': 'stdout.log', 'stderr': 'stderr.log'},
              'task_path': f'../../tasks/{task_id}', 'sync_status': 'local_only', 'document_commit': None, 'error': None}
+        if wrapper_path is not None:
+            snapshot_dir = directory / 'wrapper'
+            snapshot_dir.mkdir()
+            snapshot = snapshot_dir / wrapper_path.name
+            snapshot.write_bytes(wrapper_bytes)
+            m['requested_argv'] = list(argv)
+            m['wrapper'] = {'filename': wrapper_path.name,
+                            'snapshot': snapshot.relative_to(directory).as_posix(),
+                            'sha256': hashlib.sha256(wrapper_bytes).hexdigest(),
+                            'execution_path': None, 'cleanup_status': 'not_created',
+                            'cleanup_error': None}
         write_json(directory / 'metadata.json', m)
         started = time.monotonic()
         process = None
         old_handlers = {}
+        wrapper_temp = None
 
         def interrupted(signum, frame):
             raise InterruptedError(signum)
@@ -215,6 +237,19 @@ class Store:
         try:
             for sig in (signal.SIGINT, signal.SIGTERM):
                 old_handlers[sig] = signal.signal(sig, interrupted)
+            if wrapper_path is not None:
+                wrapper_temp = tempfile.TemporaryDirectory(prefix='dev-records-wrapper-')
+                execution_dir = Path(wrapper_temp.name).resolve()
+                m['wrapper']['cleanup_status'] = 'pending'
+                if execution_dir == source or source in execution_dir.parents:
+                    raise OSError('temporary wrapper directory must be outside source; choose an external TMPDIR')
+                execution_path = execution_dir / wrapper_path.name
+                execution_path.write_bytes(wrapper_bytes)
+                execution_path.chmod(0o700)
+                argv = [str(execution_path) if arg == '{wrapper}' else arg for arg in argv]
+                m['argv'] = argv
+                m['wrapper']['execution_path'] = str(execution_path)
+                write_json(directory / 'metadata.json', m)
             with (directory / 'stdout.log').open('wb') as stdout, (directory / 'stderr.log').open('wb') as stderr:
                 process = subprocess.Popen(argv, cwd=cwd, stdout=stdout, stderr=stderr, start_new_session=os.name == 'posix')
                 m['exit_code'] = process.wait(timeout=timeout)
@@ -235,6 +270,12 @@ class Store:
             stop()
             m.update(status='launch_error', cli_exit_code=127, error=str(exc))
         finally:
+            if wrapper_temp is not None:
+                try:
+                    wrapper_temp.cleanup()
+                    m['wrapper']['cleanup_status'] = 'removed'
+                except OSError as exc:
+                    m['wrapper'].update(cleanup_status='failed', cleanup_error=str(exc))
             m.update(ended_at=now(), wall_seconds=time.monotonic() - started)
             try:
                 write_json(directory / 'metadata.json', m)

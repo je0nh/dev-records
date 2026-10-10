@@ -12,6 +12,7 @@
 | 작업 생성 | 기획·구현·검증 문서의 틀을 만듭니다. 문서 내용은 사용자나 Codex가 작성합니다. |
 | 실행 기록 | 실제 명령, 실행 위치, 시작·종료 시각, 소요 시간, 종료 코드, Git 상태와 원본 출력을 저장합니다. |
 | 실패 보존 | 실패·실행 불가·시간 초과·중단을 구분하고 재실행 결과를 새 ID로 남깁니다. |
+| 일회성 래퍼 | 원문·해시를 보존하고 임시 복사본으로 실행한 뒤 복사본을 정리합니다. |
 | 기록 조회 | 등록된 프로젝트와 작업·실행 상태를 JSON으로 확인합니다. |
 
 현재는 **로컬 기록 기능이 구현된 초기 버전**입니다. Codex 플러그인 manifest와 Skill은 준비했지만 실제 앱 설치·호출 검증은 남아 있습니다. GitHub 기록 동기화와 hooks/MCP를 통한 자동 기록은 아직 제공하지 않습니다.
@@ -37,7 +38,7 @@ dev-records/                  # 이 도구의 소스 저장소
 
 ## 준비
 
-Git, [uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+가 필요합니다. Python 실행은 uv가 관리하는 `.venv`를 사용하며 외부 런타임 패키지는 필요하지 않습니다.
+**CLI는 OS에 따른 실행 제한이 없습니다.** Windows에서도 프로젝트·작업 등록과 명령·Python 래퍼 실행을 사용할 수 있습니다. 셸 래퍼는 해당 OS에 설치된 인터프리터가 필요합니다. POSIX 전용 테스트는 Windows에서 건너뛰며 Windows 실환경 호환성은 아직 검증하지 않았습니다. Git, [uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+가 필요합니다. Python 실행은 uv가 관리하는 `.venv`를 사용하며 외부 런타임 패키지는 필요하지 않습니다.
 
 ```sh
 git clone https://github.com/je0nh/dev-records.git
@@ -46,7 +47,7 @@ uv sync --locked
 uv run --locked python -m dev_records --help
 ```
 
-이미 저장소를 받았다면 clone은 생략하세요. 초기 검증 환경은 macOS의 Python 3.11/3.14이며, Linux·Windows 실기 검증은 남아 있습니다.
+이미 저장소를 받았다면 clone은 생략하세요. 지금까지의 개발 검증은 macOS의 Python 3.11/3.14에서 수행했습니다. Linux의 실환경 검증은 아직 남아 있습니다. 원격 사용 시 이 저장소와 uv·Python 및 기록 저장소는 명령을 실행할 원격 호스트에 준비하세요.
 
 ## 사용 방법
 
@@ -102,6 +103,8 @@ uv run --locked python -m dev_records run \
 반환된 실행 `path`에서 `metadata.json`, `stdout.log`, `stderr.log`를 확인하고 해당 실행의 `testing.md`에 결과 해석을 작성하세요. 로그는 실행 디렉터리에 저장되고 CLI 출력은 JSON입니다. 종료 코드 0만으로 모든 테스트가 통과했다고 판단하지 않습니다.
 
 같은 명령을 다시 실행하면 새 실행 ID가 생성되고 이전 실패 결과도 남습니다. 실행 명령의 실패는 CLI 종료 코드에도 반영됩니다.
+
+실행을 준비하려고 만든 일회성 래퍼가 있다면 `run`에 `--wrapper /absolute/temp/launch.py`를 추가하고, 실행 명령에는 `python '{wrapper}'`처럼 단독 자리표시자를 넣습니다. 원문은 해당 실행의 `wrapper/`에 보존하고 실행용 임시 복사본만 정리합니다. 원본 파일은 삭제하지 않습니다. 자세한 예시는 [CLI 명세의 래퍼 안내](docs/CLI.md#일회성-실행용-래퍼)를 참고하세요.
 
 ### 5. 기록 조회
 

@@ -1,4 +1,6 @@
 import concurrent.futures
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -8,6 +10,9 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
+
+from dev_records.cli import main
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,6 +50,11 @@ class Fixtures(unittest.TestCase):
 
 
 class CLI(Fixtures):
+    def test_supported_runtime_platforms(self):
+        for runtime in ('linux', 'darwin', 'win32'):
+            with self.subTest(runtime=runtime), patch('dev_records.cli.sys.platform', runtime), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(['--store', str(self.store), 'init']), 0)
+
     def test_success_argv_and_logs(self):
         task = self.setup_task()
         path, m = self.run_cmd(task, 'import sys; print("한글 ; $HOME"); print("warning", file=sys.stderr)')
@@ -124,13 +134,19 @@ class CLI(Fixtures):
     def test_two_projects_and_preserved_records(self):
         task = self.setup_task()
         self.run_cmd(task, 'print("python project")')
-        second = self.base / 'shell project'
+        second = self.base / 'second project'
         second.mkdir()
         self.call('project', 'add', '--id', 'shell', '--source', str(second))
         t = self.call('task', 'start', '--project', 'shell', '--title', 'shell test')['task_id']
-        self.call('run', '--project', 'shell', '--task', t, '--', '/bin/sh', '-c', 'printf "shell project"')
+        self.call('run', '--project', 'shell', '--task', t, '--', sys.executable, '-c', 'print("second project")')
         second.rmdir()
         self.assertEqual(len(self.call('status')['projects']), 2)
+
+    @unittest.skipUnless(os.name == 'posix' and Path('/bin/sh').is_file(), 'requires POSIX /bin/sh')
+    def test_posix_shell_command(self):
+        task = self.setup_task()
+        result = self.call('run', '--project', 'alpha', '--task', task, '--', '/bin/sh', '-c', 'printf "shell project"')
+        self.assertEqual((Path(result['path']) / 'stdout.log').read_text(), 'shell project')
 
 if __name__ == '__main__':
     unittest.main()

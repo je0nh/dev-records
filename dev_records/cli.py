@@ -30,6 +30,7 @@ def parser():
     run.add_argument('--task', required=True)
     run.add_argument('--cwd')
     run.add_argument('--timeout', type=float)
+    run.add_argument('--wrapper', help='copy and preserve a one-off wrapper; use {wrapper} in argv')
     run.add_argument('argv', nargs=argparse.REMAINDER)
     return p
 
@@ -52,7 +53,7 @@ def main(argv=None):
         else:
             if not args.argv or args.argv[0] != '--':
                 raise ValueError('use -- before program and arguments')
-            result, code = store.run(args.project, args.task, args.argv[1:], args.cwd, args.timeout)
+            result, code = store.run(args.project, args.task, args.argv[1:], args.cwd, args.timeout, args.wrapper)
         print(json.dumps(result, ensure_ascii=False))
         return code
     except (ValueError, OSError, KeyError, TypeError) as exc:
