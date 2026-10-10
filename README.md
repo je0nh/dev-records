@@ -38,7 +38,7 @@ dev-records/                  # 이 도구의 소스 저장소
 
 ## 준비
 
-Git, [uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+가 필요합니다. Python 실행은 uv가 관리하는 `.venv`를 사용하며 외부 런타임 패키지는 필요하지 않습니다.
+**CLI는 OS에 따른 실행 제한이 없습니다.** Windows에서도 프로젝트·작업 등록과 명령·Python 래퍼 실행을 사용할 수 있습니다. 셸 래퍼는 해당 OS에 설치된 인터프리터가 필요합니다. POSIX 전용 테스트는 Windows에서 건너뛰며 Windows 실환경 호환성은 아직 검증하지 않았습니다. Git, [uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+가 필요합니다. Python 실행은 uv가 관리하는 `.venv`를 사용하며 외부 런타임 패키지는 필요하지 않습니다.
 
 ```sh
 git clone https://github.com/je0nh/dev-records.git
@@ -47,7 +47,7 @@ uv sync --locked
 uv run --locked python -m dev_records --help
 ```
 
-이미 저장소를 받았다면 clone은 생략하세요. 초기 검증 환경은 macOS의 Python 3.11/3.14이며, Linux·Windows 실기 검증은 남아 있습니다.
+이미 저장소를 받았다면 clone은 생략하세요. 지금까지의 개발 검증은 macOS의 Python 3.11/3.14에서 수행했습니다. Linux의 실환경 검증은 아직 남아 있습니다. 원격 사용 시 이 저장소와 uv·Python 및 기록 저장소는 명령을 실행할 원격 호스트에 준비하세요.
 
 ## 사용 방법
 
