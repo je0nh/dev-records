@@ -6,6 +6,7 @@
 |---|---|
 | test_cli.py | 기본 CLI 흐름·실패·중단·동시성 및 공통 fixture |
 | test_extra.py | Git 정보·경로 검증·플러그인·uv 통합 검증 |
+| test_wrappers.py | 일회성 래퍼 snapshot·임시 정리·실패/중단·동시성 |
 | trace_cli.py | subprocess 커버리지 측정 보조 도구 |
 
 실행 방법은 [검증 가이드](../docs/TESTING.md)를 따른다.

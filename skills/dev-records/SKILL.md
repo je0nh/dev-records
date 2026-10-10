@@ -15,3 +15,9 @@ Use the bundled CLI at `../../scripts/dev-records.py` relative to this skill dir
 6. Report task/run locations and remaining work. All current records are local_only. Do not claim GitHub backup: sync is not implemented. Remote writes and installation require the user's explicit instruction. Do not modify global settings or credentials.
 
 This Skill guides recording when used; it is not an automatic hook and cannot capture commands executed outside the recorder. Logs and argv preserve raw input/output and may contain secrets: avoid putting credentials into commands. Do not duplicate run metadata into unrelated documents or erase failed runs on retry.
+
+## One-off execution wrappers
+
+Prefer direct argv for simple commands. When a wrapper is needed to invoke an existing script, create the input in your own per-task temporary directory outside the project. Never embed credentials. Use `run --wrapper PATH -- INTERPRETER '{wrapper}' ARG...` with exactly one standalone placeholder. The tool stores the original bytes and SHA-256 in the run record, executes a private temporary copy, and cleans that copy on normal completion, failure, timeout or handled interruption.
+
+Check metadata.wrapper.cleanup_status and the preserved snapshot. Then remove only the input temporary directory you created; never delete user-provided wrapper files. Keep failed-run snapshots/logs. Use registered cwd or explicit target script paths: copying the wrapper changes its own file location. A SIGKILL/power loss can leave running metadata and an execution temp directory; never bulk-delete directories that may still be active. Promote repeatedly useful wrappers into maintained scripts/ tools.

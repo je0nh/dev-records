@@ -8,7 +8,7 @@
 dev-records --store PATH init
 dev-records --store PATH project add --id ID --source PATH [--name NAME]
 dev-records --store PATH task start --project ID --title TITLE [--id TASK_ID]
-dev-records --store PATH run --project ID --task TASK_ID [--cwd PATH] [--timeout SECONDS] -- PROGRAM ARG...
+dev-records --store PATH run --project ID --task TASK_ID [--cwd PATH] [--timeout SECONDS] [--wrapper PATH] -- PROGRAM ARG...
 dev-records --store PATH status
 ```
 
@@ -21,3 +21,17 @@ dev-records --store PATH status
 종료 코드: CLI/입력 오류 2, 정상 실행은 자식 코드(0–255), 실행 불가 127, timeout 124, SIGINT 130, SIGTERM 143, 자식의 기타 signal은 128+signal. 자식 코드와 CLI 코드는 metadata에 별도로 기록.
 
 명령 인자와 원본 로그에는 호출자가 전달한 비밀이 포함될 수 있다. 환경변수 전체·remote URL·Git diff는 수집하지 않는다. 원본 로그를 자동 삭제/업로드하지 않는다.
+
+## 일회성 실행용 래퍼
+
+```sh
+uv run --locked python -m dev_records --store /absolute/records run \
+  --project my-project --task first-task --wrapper /absolute/temp/launch.py \
+  -- uv run --project /absolute/source python '{wrapper}'
+```
+
+`--wrapper`가 있으면 argv의 단독 `{wrapper}` 인자가 정확히 한 개 필요하다. 원본을 한 번 읽고 실행 디렉터리의 `wrapper/<filename>`에 원문을 보존한다. metadata.wrapper는 snapshot 상대 경로·SHA-256·execution_path·cleanup_status·cleanup_error를 담는다. requested_argv는 치환 전 명령, argv는 실제 실행한 명령이다. 원본 입력 경로는 metadata에 추가 수집하지 않는다.
+
+실행용 복사본은 프로젝트 밖의 고유 임시 폴더에 두고 source cwd에서 실행한다. 실행 종료·실패·timeout·SIGINT/SIGTERM 처리 후 이 폴더만 정리한다. 원본 입력과 기록 사본은 삭제하지 않는다. cleanup_status는 not_created/pending/removed/failed이며 정리 실패는 cleanup_error에 기록한다. 정리 상태와 자식 명령 성공 여부는 별개다.
+
+래퍼 파일을 기준으로 상대 경로나 옆 파일을 찾는 코드는 복사본에서 동작이 달라질 수 있다. 대상 스크립트는 명시적 경로나 source cwd 기준으로 호출한다. 래퍼가 생성한 source 산출물은 자동 정리하지 않는다. 환경변수 전체·의존 파일·의존성은 자동 보관하지 않으며 원문 하나의 보존이 전체 재현 환경을 보장하지 않는다. SIGKILL/전원 중단 시 running/pending과 임시 폴더가 남을 수 있고 자동 복구·오래된 폴더 일괄 삭제는 지원하지 않는다. 입력 래퍼에는 비밀정보를 넣지 않는다.

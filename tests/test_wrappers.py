@@ -1,3 +1,8 @@
+import concurrent.futures
+import os
+import signal
+import time
+import unittest
 import hashlib
 import json
 from pathlib import Path
@@ -60,3 +65,42 @@ class Wrappers(Fixtures):
         self.call('run', '--project', 'alpha', '--task', task, '--wrapper', str(self.base/'missing'), '--', sys.executable, '{wrapper}', expected=2)
         self.call('run', '--project', 'alpha', '--task', task, '--wrapper', str(self.base), '--', sys.executable, '{wrapper}', expected=2)
         self.assertEqual(list(self.store.glob('projects/alpha/runs/*')), [])
+
+    def test_concurrent_wrapper_runs_are_independent(self):
+        task = self.setup_task()
+        wrapper = self.base / 'launch.py'
+        content = b'import time\nprint("ready", flush=True)\ntime.sleep(0.1)\n'
+        wrapper.write_bytes(content)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            results = list(pool.map(lambda _: self.execute(task, wrapper), range(3)))
+        self.assertEqual(len({m['wrapper']['execution_path'] for _, m in results}), 3)
+        for path, m in results:
+            self.assert_preserved_and_cleaned(path, m, content)
+
+    @unittest.skipUnless(os.name == 'posix', 'POSIX signal test')
+    def test_interrupt_cleans_only_execution_copy(self):
+        task = self.setup_task()
+        wrapper = self.base / 'launch.py'
+        content = b'import time\nprint("ready", flush=True)\ntime.sleep(20)\n'
+        wrapper.write_bytes(content)
+        p = subprocess.Popen([*cli_command(), '--store', str(self.store), 'run', '--project', 'alpha', '--task', task, '--wrapper', str(wrapper), '--', sys.executable, '{wrapper}'], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            deadline = time.monotonic()+5
+            while time.monotonic() < deadline:
+                if any('ready' in log.read_text() for log in self.store.glob('projects/alpha/runs/*/stdout.log')):
+                    break
+                time.sleep(0.02)
+            else:
+                self.fail('wrapper never ready')
+            p.send_signal(signal.SIGTERM)
+            out, err = p.communicate(timeout=5)
+            self.assertEqual(p.returncode, 143, err)
+            path = Path(json.loads(out)['path'])
+            m = json.loads((path/'metadata.json').read_text())
+            self.assertEqual(m['status'], 'interrupted')
+            self.assert_preserved_and_cleaned(path, m, content)
+            self.assertEqual(wrapper.read_bytes(), content)
+        finally:
+            if p.poll() is None:
+                p.kill()
+                p.communicate()

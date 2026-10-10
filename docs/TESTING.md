@@ -20,6 +20,7 @@ uv run --locked python scripts/measure-coverage.py
 - 경로 이탈·중복 ID·입력 오류 방지
 - 동시 작업/실행 분리와 소스 삭제 후 기록 유지
 - 플러그인 복사본 실행과 uv 가상환경 분리
+- 실행용 래퍼 원문·해시 보존, 임시 복사본 정리와 원본 유지
 
 테스트 배치는 [tests 안내](../tests/README.md)를 따른다. 새 기능의 검증은 관련 테스트에 추가하고, 이 문서는 실행 방법이나 검증 범위가 달라질 때 갱신한다. 매 실행의 결과 파일을 이 폴더에 추가하지 않는다.
 
@@ -32,3 +33,9 @@ Linux/Windows 실기, 실제 Codex 설치/Skill 호출, Git sync는 아직 검�
 ## 결과 보관
 
 실행별 argv·시각·종료 코드·원본 로그는 도구 소스 밖의 사용자 기록 저장소에 저장한다. CI 도입 후 CI 로그와 보고서는 CI artifact로 보관하고 보관 기간을 설정한다. CI artifact는 현재 구현되지 않았다. 중요한 릴리스 검증 요약만 개발 이력으로 남기며, 실패 원본을 자동 삭제하지 않는다.
+
+## 실행용 래퍼 개발 검증
+
+`codex/execution-wrappers`의 TDD: `uv run --locked python -m unittest discover -s tests -p test_wrappers.py -v`에서 --wrapper 미구현으로 성공/실패/timeout/실행 불가 4개 assertion 실패(RED)를 확인했다. 구현 후 같은 3개 테스트가 통과했고 중단·동시 실행 테스트를 추가했다. 전체 unittest 20 tests OK. 입력 원본·대상 파일 유지, snapshot bytes/sha256 일치, 임시 실행 폴더 제거를 검증한다. shell wrapper와 Windows 실기·강제 종료 복구는 별도 검증 대상이다.
+
+`uv run --locked python scripts/measure-coverage.py`: 전체 20 tests OK, core 줄 커버리지 92%, CLI 94%. `uv audit`은 외부 의존성 0개를 확인했다.

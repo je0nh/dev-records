@@ -32,3 +32,9 @@ Git 정보는 source가 상위 Git 저장소 안에 있으면 해당 repository 
 
 ## 호환성 근거
 2026-10-10 확인: [OpenAI 공식 패키징 문서](https://developers.openai.com/plugins/build/plugins)는 root plugin.json와 skills/를 지원하며 .codex-plugin/plugin.json도 호환 fallback으로 설명한다. 이 저장소는 두 manifest를 제공한다. 로컬 marketplace/설치는 docs/PLUGIN.md에서 안내하며 실제 설치/Skill 호출은 미검증이다. 전역 설정과 credentials는 수정하지 않는다.
+
+## ADR-004: 실행용 래퍼 사본과 정리 소유권
+
+래퍼는 일반 argv 실행의 선택 기능으로 추가한다. 실행 전 입력 원문을 읽고 실행 기록에 snapshot/sha256을 저장한다. 같은 bytes로 임시 복사본을 만들어 argv의 `{wrapper}` 한 토큰만 치환한다. 전역 shell 해석은 추가하지 않는다. 원문 보존과 실행 복사본이 동일하므로 실행 중 입력 파일 변경의 영향을 받지 않는다.
+
+정리 책임은 도구가 생성한 실행 임시 디렉터리에 한정한다. 원본 입력과 실패 증거를 보존하고 cleanup_status를 metadata에 남긴다. wrapper metadata는 schema_version 1의 선택 필드이며 기존 run 호출은 그대로 지원한다. 강제 종료 복구·잔여 디렉터리 GC·의존 파일 수집은 후속 범위다.
