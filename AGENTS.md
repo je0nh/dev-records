@@ -16,7 +16,7 @@
 
 ## 실행 환경과 구조
 
-Python 3.11+와 uv를 사용한다. Python 실행은 uv가 관리하는 프로젝트 `.venv`에서 수행하며 전역 pip로 설치하지 않는다.
+CLI는 OS별로 실행을 차단하지 않는다. Python 3.11+와 uv를 사용하며 공통 기능 테스트는 Windows에서도 실행할 수 있게 유지한다. POSIX 셸·signal 테스트만 해당 환경에서 실행하고 symlink 테스트는 생성 권한이 없을 때 사유를 남겨 skip한다. Windows 기본 기능 사용을 허용하되 실환경 검증 없이 호환성을 보장하지 않는다. macOS에서의 개발 검증 결과를 Linux 실환경 검증 완료로 취급하지 않는다. Python 실행은 uv가 관리하는 프로젝트 `.venv`에서 수행하며 전역 pip로 설치하지 않는다.
 
 ```sh
 uv sync --locked
