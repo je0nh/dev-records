@@ -9,7 +9,7 @@
 | test_wrappers.py | 일회성 래퍼 snapshot·임시 정리·실패/중단·동시성 |
 | trace_cli.py | subprocess 커버리지 측정 보조 도구 |
 
-실행 방법은 [검증 가이드](../docs/TESTING.md)를 따른다.
+실행 방법은 [검증 가이드](../docs/TESTING.md)를 따른다. 공통 기능은 모든 OS에서 검증하며 POSIX 셸·signal 테스트만 조건부 실행한다. symlink 생성 권한이 없는 Windows에서는 해당 테스트만 사유를 남겨 skip한다. 플랫폼 mock은 실행 차단 회귀만 확인하며 Windows·Linux 실환경 검증을 대신하지 않는다.
 
 ## 확장 기준
 
